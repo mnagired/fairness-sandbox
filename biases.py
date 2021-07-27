@@ -364,3 +364,59 @@ def over_sampling(df_train, sens_attr,
     df_concat = pd.concat([df_oversampled,df_minority])
 
     return df_concat.sample(frac=1) # reshuffle rows of dataframe randomly
+
+
+'''
+
+Under-Sampling Minority Class
+
+Note 1: you will need to input $\beta$, which is the probability of deleting
+        an example from the minority class. For example, if $\beta = 0.25$
+        then each example in the training data will be deleted with probability $0.25$,
+        which will result in approximately $25\%$ of the total minority class examples being deleted.
+
+Note 2: this method is equivalent to using representation bias on the minority
+
+'''
+
+'''
+
+This function performs the under-sampling bias injection
+
+'''
+def under_sample(df_minority, beta):
+    X_min = df_minority.iloc[:, :].values
+    cols = df_minority.columns
+
+    # delete each example with probability beta
+    for i in range(len(X_min)):
+        if random.uniform(0,1) <= beta:
+            X_min = np.delete(X_min, 0, axis=0)
+
+    df_minority = pd.DataFrame(pd.DataFrame(X_min))
+    df_minority.columns = cols
+    return df_minority
+
+
+'''
+
+Parameters:
+
+    beta: probability of deleting example from minority
+    sens_attr: sensitive attribute
+    maj_val: value of sens_attr which indicates majority class
+    min_val: value of sens_attr which indicates minority class
+
+'''
+def under_sampling(df_train, beta, sens_attr,
+                    maj_val, min_val):
+    df_majority = df_train[df_train[sens_attr] == maj_val]
+    df_minority = df_train[df_train[sens_attr] == min_val]
+
+    df_total = df_majority
+    df_undersampled = under_sample(df_minority, beta)
+
+    # combine undersampled and original majority class to create dataset
+    df_concat = pd.concat([df_total,df_undersampled])
+
+    return df_concat.sample(frac=1) # reshuffle rows of dataframe randomly
