@@ -214,3 +214,56 @@ def omitted_variable(datasets, df, short_name, col_to_del, is_sens_attr = False)
         datasets[short_name].has_sens_attr = False
 
     return df.drop(col_to_del, axis = 1)
+
+
+'''
+Label Noise Bias
+
+add noise to labels for a specific subset of the data
+    (conditioned on another feature or subgroup of another feature)
+
+
+feature: must be a column in the dataframe
+feature_type: numeric or categorical
+subgroup_val: subgroup value for feature
+    if subgroup_type == numerical:
+        subgroup is a range of values (x, y)
+    if subgroup_type == categorical:
+        subgroup is a single numerical value
+            (refer to OHE if needed)
+
+label_noise: flip labels with probability label_noise
+
+'''
+
+def label_noise(df, feature, feature_type, subgroup_val, label_noise):
+
+    assert feature in list(df.columns), "feature must be a column in the dataframe!"
+
+    err_msg = "Error! feature_type must be either numeric or categorical"
+
+    df_bias = df.copy()
+
+    if feature_type == 'numeric':
+        lower, upper = subgroup_val
+        df_bias = df_bias[(df_bias[feature] >= lower) &
+                          (df_bias[feature] <= upper)]
+
+    else:
+        assert feature_type == 'categorical', err_msg
+        df_bias = df_bias[df_bias[feature] == subgroup_val]
+
+    labels = list(df_bias['outcome'])
+
+    for i in range(len(labels)):
+        if random.uniform(0,1) <= label_noise:
+            labels[i] = 1 if labels[i] == 0 else 0
+    df_bias['outcome'] = labels
+
+    if feature_type == 'numeric':
+        lower, upper = subgroup_val
+        df[(df[feature] >= lower) & (df[feature] <= upper)] = df_bias
+    else:
+        df[df[feature] == subgroup_val] = df_bias
+
+    return df
