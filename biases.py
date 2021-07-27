@@ -267,3 +267,100 @@ def label_noise(df, feature, feature_type, subgroup_val, label_noise):
         df[df[feature] == subgroup_val] = df_bias
 
     return df
+
+
+'''
+Over-Sampling Majority Class
+
+Note: you can either choose to randomly over-sample existing examples or
+      generate new samples by interpolation using SMOTE and ADASYN
+
+Parameters:
+
+    maj_val: value of sens_attr which indicates majority class
+    min_val: value of sens_attr which indicates minority class
+    sens_attr: sensitive attribute
+    over_amt: amount of over-sampling to be applied to majority
+        e.g. over_amt = 2 means twice as many samples in majority
+
+'''
+
+def random_over_sampling(df_train, sens_attr,
+                         maj_val, min_val, over_amt = 2):
+    df_majority = df_train[df_train[sens_attr] == maj_val]
+    df_minority = df_train[df_train[sens_attr] == min_val]
+
+    df_oversampled = df_majority.sample(int(over_amt)*len(df_majority), replace = True)
+
+    # combine oversampled and original majority class to create dataset
+    df_concat = pd.concat([df_oversampled,df_minority])
+
+    return df_concat.sample(frac=1) # reshuffle rows of dataframe randomly
+
+
+from imblearn.over_sampling import *
+# to avoid warning
+pd.options.mode.chained_assignment = None
+
+'''
+
+Parameters:
+
+    maj_val: value of sens_attr which indicates majority class
+    min_val: value of sens_attr which indicates minority class
+    sens_attr: sensitive attribute
+    over_amt: amount of over-sampling to be applied to majority
+        e.g. over_amt = 2 means twice as many samples in majority
+    type: if 1 then SMOTE, if 2 then ADASYN
+
+'''
+
+def over_sampling(df_train, sens_attr,
+          maj_val, min_val, over_amt = 2, type = 1):
+
+    assert type in [1,2], "Type must be 1 or 2, see comments!"
+
+    cols = df_train.columns
+
+    df_majority_X = df_train[df_train[sens_attr] == maj_val].drop('outcome', axis = 1)
+    df_majority_y = df_train[df_train[sens_attr] == maj_val]['outcome']
+    df_minority_X = df_train[df_train[sens_attr] == min_val].drop('outcome', axis = 1)
+    df_minority_y = df_train[df_train[sens_attr] == min_val]['outcome']
+
+    over_sample_amt = int(len(df_majority_X) * over_amt)
+
+    # make original minority class into majority with label 0
+    df_minority_flipped = df_minority_X.sample(over_sample_amt, replace = True)
+    df_minority_flipped['outcome'] = np.zeros((len(df_minority_flipped),1))
+
+    # make original majority have all label 0 (so it's the minority now)
+    df_majority_X['outcome'] = np.ones((len(df_majority_X),1))
+    df_majority = df_majority_X
+
+    df_total = pd.concat([df_minority_flipped, df_majority])
+
+    X_total = df_total.iloc[:, :-1].values
+    y_total = df_total.iloc[:, -1].values
+
+    if type == 1:
+        over_sampler = SMOTE(random_state = 42, sampling_strategy = 'minority')
+    else:
+        over_sampler = ADASYN(random_state = 42, sampling_strategy = 'minority')
+
+    X_total_resampled, y_total_resampled = over_sampler.fit_resample(X_total, y_total)
+
+    df_res = pd.DataFrame(X_total_resampled)
+    df_res['outcome'] = y_total_resampled
+    df_res.columns = cols
+
+    df_oversampled = df_res[df_res[sens_attr] == maj_val]
+    oversampled_labels = df_majority_y.sample(len(df_oversampled), replace = True).values
+
+    labels = oversampled_labels
+
+    df_oversampled['outcome'] = labels
+
+    # combine oversampled and original majority class to create dataset
+    df_concat = pd.concat([df_oversampled,df_minority])
+
+    return df_concat.sample(frac=1) # reshuffle rows of dataframe randomly
