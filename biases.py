@@ -315,7 +315,7 @@ Parameters:
 
 '''
 
-def over_sampling(df_train, sens_attr,
+def over_sampling(df_train, df_minority, sens_attr,
           maj_val, min_val, over_amt = 2, type = 1):
 
     assert type in [1,2], "Type must be 1 or 2, see comments!"
