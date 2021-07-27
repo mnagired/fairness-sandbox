@@ -195,3 +195,22 @@ def measurement(df, feature, feature_type, noise_dist = np.random.normal,
 
 
     return df_bias
+
+
+'''
+Omitted Variable Bias
+
+Note: if you choose to remove the sensitive feature, you will no longer be able to impose a fairness intervention!
+Resulting comparisons will simply be between regular ml models trained with and without the sensitive attribute.
+
+'''
+
+# must input a Dataset object
+def omitted_variable(datasets, df, short_name, col_to_del, is_sens_attr = False):
+    assert col_to_del in list(df.columns), "Column to delete must be a column in the dataframe!"
+    assert short_name in datasets.keys(), "Dataset with that short name doesn't exist!"
+
+    if is_sens_attr:
+        datasets[short_name].has_sens_attr = False
+
+    return df.drop(col_to_del, axis = 1)
