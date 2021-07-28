@@ -110,7 +110,14 @@ Parameters:
 
     num_numerical_feats is number of numerical features
         each numerical feature is drawn from a
-        multivariate normal distribution with mean 0
+        multivariate normal distribution
+
+    means = mean for each numerical features, default is 0 mean
+        NOTE: len(means) == num_numerical_feats
+
+    cov_matrix = covariance matrix for numerical features,
+        default is identity matrix
+        NOTE: cov_matrix.shape == np.identity(num_numerical_feats).shape
 
     num_cat_feats is number of categorical features
 
@@ -131,6 +138,7 @@ Parameters:
 '''
 
 def get_synthetic_data(n, r, num_numerical_feats, num_cat_feats,
+                       means = [], cov_matrix = [],
                        cat_levels = [], label_noise = 0,
                        diff_dist = False, show_vis = False):
 
@@ -141,8 +149,17 @@ def get_synthetic_data(n, r, num_numerical_feats, num_cat_feats,
     cat_probs = list(np.multiply(np.ones(num_cat_feats),0.5))
 
     # numerical feature params
-    means = list(np.zeros(num_numerical_feats))
-    cov_matrix = list(np.identity(num_numerical_feats))
+    if means == []:
+        means = list(np.zeros(num_numerical_feats))
+
+    assert len(means) == num_numerical_feats, \
+    "Error! len(means) == num_numerical_feats"
+
+    if cov_matrix == []:
+        cov_matrix = list(np.identity(num_numerical_feats))
+
+    assert np.array(cov_matrix).shape == np.identity(num_numerical_feats).shape, \
+    "cov_matrix.shape == np.identity(num_numerical_feats).shape"
 
     # generating the features
 
