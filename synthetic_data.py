@@ -174,8 +174,8 @@ def get_synthetic_data(n, r, num_numerical_feats, num_cat_feats,
     if num_types == []:
         num_types = list(np.ones(num_numerical_feats))
 
-    assert np.array(num_types).shape == np.identity(num_numerical_feats).shape, \
-    "num_types.shape != np.identity(num_numerical_feats).shape"
+    assert len(num_types) == num_numerical_feats, \
+    "len(num_types) != num_numerical_feats"
 
     # generating the features
 
