@@ -109,11 +109,6 @@ def setup():
     # current_app.logger.info(datasets['student_por'].num_cols)
 
 
-def test_plot(featureName):
-    current_app.logger.info(f'plotting for {featureName}')
-    plot_counts(datasets['student_por'].df, featureName)
-    return "./img/figure.png"
-
 def plotBefore():
     return('Ground Truth Label Distribution \n{}'.format(Counter(datasets['student_por'].df['pass'])))
     # return str(pd.value_counts(datasets['student_por'].df['pass'], sort=True))
@@ -127,6 +122,20 @@ def plot_counts_data(data):
     fig = count.plot(kind = 'bar', rot = 0)
     fig.figure.savefig('client/public/img/figure.png')
 
+def test_plot(featureName):
+    current_app.logger.info(f'plotting for {featureName}')
+    plot_counts(datasets['student_por'].df, featureName)
+    return "./img/figure.png"
+
+def plotCounts(featureName):
+    if attr in df.columns:
+        temp = df[attr].value_counts(normalize=True)
+        # fig.figure.savefig('client/public/img/figure.png')
+        current_app.logger.info(temp)
+    else:
+        current_app.logger.info("Error! Please enter a valid feature.")
+
+# Old. Using matplotlib
 def plot_counts(df, attr):
     if attr in df.columns:
         fig = df[attr].value_counts(normalize=True).plot.barh()

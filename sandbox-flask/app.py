@@ -28,10 +28,10 @@ def home(path):
     return send_from_directory('client/public', path)
 
 
-@app.route("/getGender/<featureName>")
-def getGender(featureName):
+@app.route("/plotCounts/<featureName>")
+def plotCounts(featureName):
     featureName = request.view_args['featureName']
-    return (sandbox.test_plot(featureName))
+    return (sandbox.plotCounts(featureName))
 
 @app.route("/getBefore")
 def getBefore():
