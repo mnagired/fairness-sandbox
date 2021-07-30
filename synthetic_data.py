@@ -15,6 +15,19 @@ Helper Functions
 
 '''
 
+def get_num_feats(ranges, num_types, n):
+    total = []
+    for i in range(len(ranges)):
+        lower, upper = ranges[i]
+        if num_types[i] == 1:
+            arr = np.random.randint(low = lower, high = upper, size = (n,1))
+        else:
+            assert num_types[i] == 0, \
+            "Error! num_types element must be 1 (integer) or 0 (float)"
+            arr = np.random.uniform(low = lower, high = upper, size = (n,1))
+        total.append(arr)
+    return np.concatenate(total, axis = 1)
+
 # create binary sensitive attribute
 def get_sensitive_feat(n, r):
     num_minority = int(r * n)
@@ -112,12 +125,15 @@ Parameters:
         each numerical feature is drawn from a
         multivariate normal distribution
 
-    means = mean for each numerical features, default is 0 mean
-        NOTE: len(means) == num_numerical_feats
+    ranges = list with range of values for each numerical feature
+        each element of ranges is a range [x,y)
+        default is [0,1)
+        NOTE: len(ranges) == num_numerical_feats
 
-    cov_matrix = covariance matrix for numerical features,
-        default is identity matrix
-        NOTE: cov_matrix.shape == np.identity(num_numerical_feats).shape
+    num_types: list of values such that
+        num_types[i] = 1 if integer, 0 if float for numerical feature i
+        default is all integers
+        NOTE: len(num_types) == num_numerical_feats
 
     num_cat_feats is number of categorical features
 
@@ -138,7 +154,7 @@ Parameters:
 '''
 
 def get_synthetic_data(n, r, num_numerical_feats, num_cat_feats,
-                       means = [], cov_matrix = [],
+                       ranges = [], num_types = [],
                        cat_levels = [], label_noise = 0,
                        diff_dist = False, show_vis = False):
 
@@ -149,22 +165,22 @@ def get_synthetic_data(n, r, num_numerical_feats, num_cat_feats,
     cat_probs = list(np.multiply(np.ones(num_cat_feats),0.5))
 
     # numerical feature params
-    if means == []:
-        means = list(np.zeros(num_numerical_feats))
+    if ranges == []:
+        ranges = [(0,1) for i  in range(num_numerical_feats)]
 
-    assert len(means) == num_numerical_feats, \
-    "Error! len(means) == num_numerical_feats"
+    assert len(ranges) == num_numerical_feats, \
+    "Error! len(ranges) != num_numerical_feats"
 
-    if cov_matrix == []:
-        cov_matrix = list(np.identity(num_numerical_feats))
+    if num_types == []:
+        num_types = list(np.ones(num_numerical_feats))
 
-    assert np.array(cov_matrix).shape == np.identity(num_numerical_feats).shape, \
-    "cov_matrix.shape == np.identity(num_numerical_feats).shape"
+    assert np.array(num_types).shape == np.identity(num_numerical_feats).shape, \
+    "num_types.shape != np.identity(num_numerical_feats).shape"
 
     # generating the features
 
-    num_features_min = np.random.multivariate_normal(means, cov_matrix, num_min)
-    num_features_maj = np.random.multivariate_normal(means, cov_matrix, num_maj)
+    num_features_min = get_num_feats(ranges, num_types, num_min)
+    num_features_maj = get_num_feats(ranges, num_types, num_maj)
     num_features = np.concatenate((num_features_min, num_features_maj))
 
     # binary sensitive attribute, 0: minority, 1: majority
