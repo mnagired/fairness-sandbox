@@ -1,0 +1,26 @@
+Dataset:
+- synthetic dataset: user enter parameter
+- user upload: user select categorical features, sensitive features
+
+Visualize distribution of data: user select features
+
+data preprocessing:
+- specify train test split proportion (test set === unbiased ground truth)
+- what is majority, minority class
+- (if user enter data) have to onehot encode
+
+bias injection:
+- select injection method [List of Biases]
+
+model selection:
+- e.g. logistic regression
+
+Model performance:
+- user specify (e.g. accuracy, TPR, selection rate)
+
+Fariness intervention:
+- user specify type (pre/ post). Potentially have more than one in each category in the future
+- user specify bias amount
+
+Metrics to compare/ visualize:
+- user specify (e.g. accuracy, TPR, selection rate) Note: Potentially same as the one in model performance

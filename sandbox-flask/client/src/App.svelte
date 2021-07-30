@@ -42,6 +42,7 @@
 <button on:click={injectBias}>Inject Bias - Oversample</button>
 <button on:click={injectBiasUnder}>Inject Bias - Undersample</button>
 <p>{txt}</p>
+<h1>hello world</h1>
 <img src={plot}>
 
 
