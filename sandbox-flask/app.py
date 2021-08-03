@@ -31,7 +31,9 @@ def home(path):
 @app.route("/plotCounts/<featureName>")
 def plotCounts(featureName):
     featureName = request.view_args['featureName']
+    app.logger.info (jsonify(sandbox.plotCounts(featureName)))
     return (sandbox.plotCounts(featureName))
+    # return "./img/figure.png"
 
 @app.route("/getBefore")
 def getBefore():
@@ -41,9 +43,21 @@ def getBefore():
 def injectBias():
     return (sandbox.injectBias())
 
-@app.route("/injectBiasUnder")
-def injectBiasUnder():
-    return (sandbox.injectBiasUnder())
+@app.route("/trainModel")
+def trainModel():
+    return (sandbox.trainModel())
+
+@app.route("/fairnessIntervention")
+def fairnessIntervention():
+    return (sandbox.fairnessIntervention())
+
+@app.route("/fairnessTradeoff")
+def fairnessTradeoff():
+    return (sandbox.fairnessTradeoff())
+
+@app.route("/fairnessTradeoff2")
+def fairnessTradeoff2():
+    return (sandbox.fairnessTradeoff2())
 
 
 if __name__ == "__main__":

@@ -1,9 +1,9 @@
-<canvas id="myChart" width="2" height="1"></canvas>
 <script>
 import {onMount, afterUpdate} from 'svelte';
 
 export let data;
 export let labels;
+export let chartVar;
 var ctx;
 var myChart;
 
@@ -11,9 +11,12 @@ function createChart() {
     var ctx = document.getElementById('myChart').getContext('2d');
     // var ctx = document.getElementById('myChart').getContext('2d');
     // var myChart = new Chart(ctx, {
+    console.log(data);
     
     if (myChart) {
         myChart.data.datasets[0].data = data;
+        myChart.data.datasets[0].label = chartVar;
+        myChart.data.labels = labels;
         myChart.update();
     } else {
         myChart = new Chart(ctx, {
@@ -21,7 +24,7 @@ function createChart() {
             data: {
                 labels: labels,
                 datasets: [{
-                    label: '# of Votes',
+                    label: chartVar,
                     data: data,
                     backgroundColor: [
                         'rgba(255, 99, 132, 0.2)',
@@ -54,6 +57,30 @@ function createChart() {
 }
 
 // onMount(createChart);
-afterUpdate(createChart);
+// afterUpdate(createChart);
+afterUpdate(() =>{
+    createChart();
+});
+
 
 </script>
+
+<style>
+.chart-container {
+    position: relative;
+    max-width: 500px !important;
+    max-height: 30px !important;
+}
+
+/*  */
+
+h1{
+    color:red;
+}
+</style>
+
+
+<div class="chart-container">
+    <canvas id="myChart" width="2" height="1"></canvas>
+</div>
+
