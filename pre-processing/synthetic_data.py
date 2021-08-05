@@ -158,6 +158,9 @@ def get_synthetic_data(n, r, num_numerical_feats, num_cat_feats,
                        cat_levels = [], label_noise = 0,
                        diff_dist = False, show_vis = False):
 
+    # ignore overflow for np.exp calls
+    np.seterr(over = 'ignore')
+
     assert 0 < r < 1, "R must be in [0,1]"
     num_min = int(n*r)
     num_maj = n - num_min
@@ -185,6 +188,8 @@ def get_synthetic_data(n, r, num_numerical_feats, num_cat_feats,
 
     # binary sensitive attribute, 0: minority, 1: majority
     sens_feat = get_sensitive_feat(r=r, n=n)
+    effect_param_sens = [99999999999999999]
+    sens_comb = np.matmul(sens_feat, effect_param_sens)
 
     assert len(cat_levels) == num_cat_feats, \
     "Each categorical feature must have a specification for its number of levels"
@@ -211,12 +216,13 @@ def get_synthetic_data(n, r, num_numerical_feats, num_cat_feats,
         if show_vis:
             distribution_plot(outcome_continuous_min, outcome_continuous_maj, diff_dist=True)
     else:
-        effect_param = [0.5, -0.2, 0.1]
-        effect_param_num = [np.random.uniform(-1,1) for i in range(num_numerical_feats)]
-        effect_param_cat = [np.random.uniform(-1,1) for i in range(num_cat_feats)]
+        effect_param_num = [5 for i in range(num_numerical_feats)]
+        #effect_param_num = [np.random.uniform(-1,1) for i in range(num_numerical_feats)]
+        effect_param_cat = [-1000 for i in range(num_cat_feats)]
+        #effect_param_cat = [np.random.uniform(-1,1) for i in range(num_cat_feats)]
         #outcome_continuous = 1/(1+np.exp(-(np.matmul(num_features,effect_param)))) # logit model + no added noise
         outcome_continuous = 1/(1+np.exp(-(np.matmul(num_features,effect_param_num) + \
-                                np.matmul(cat_feats,effect_param_cat)))) # logit model + no added noise
+                                np.matmul(cat_feats,effect_param_cat) + sens_comb))) # logit model + no added noise
         outcome_binary = np.where(outcome_continuous >= 0.5, 1, 0).reshape(n,1) # logistic decision boundary
         if show_vis:
             distribution_plot(outcome=outcome_continuous, diff_dist=False)
