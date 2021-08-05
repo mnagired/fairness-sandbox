@@ -188,7 +188,7 @@ def get_synthetic_data(n, r, num_numerical_feats, num_cat_feats,
 
     # binary sensitive attribute, 0: minority, 1: majority
     sens_feat = get_sensitive_feat(r=r, n=n)
-    effect_param_sens = [99999999999999999]
+    effect_param_sens = [9999]
     sens_comb = np.matmul(sens_feat, effect_param_sens)
 
     assert len(cat_levels) == num_cat_feats, \
