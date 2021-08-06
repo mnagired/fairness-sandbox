@@ -28,10 +28,14 @@ def representation(df, feat_conditions, beta):
     df_bias = df.copy()
     drop_idx = []
 
+    #print('Before: ', len(df_bias))
+
     for i in df_bias.index[feat_conditions]:
         if random.uniform(0,1) <= beta: drop_idx.append(i)
 
-    return df_bias.drop(drop_idx)
+    df_bias = df_bias.drop(drop_idx)
+    #print('After: ', len(df_bias))
+    return df_bias
 
 '''
 Measurement Bias
