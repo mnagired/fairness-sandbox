@@ -158,6 +158,9 @@ def get_synthetic_data(n, r, num_numerical_feats, num_cat_feats,
                        cat_levels = [], label_noise = 0,
                        diff_dist = False, show_vis = False):
 
+    # ignore overflow for np.exp calls
+    np.seterr(over = 'ignore')
+
     assert 0 < r < 1, "R must be in [0,1]"
     num_min = int(n*r)
     num_maj = n - num_min
@@ -185,6 +188,11 @@ def get_synthetic_data(n, r, num_numerical_feats, num_cat_feats,
 
     # binary sensitive attribute, 0: minority, 1: majority
     sens_feat = get_sensitive_feat(r=r, n=n)
+    num_majority = n - int(r*n)
+
+    effect_param_sens = [9999]
+    sens_comb_maj = np.matmul(np.ones((num_majority,1)), effect_param_sens)
+    sens_comb = np.matmul(sens_feat, effect_param_sens)
 
     assert len(cat_levels) == num_cat_feats, \
     "Each categorical feature must have a specification for its number of levels"
@@ -195,28 +203,33 @@ def get_synthetic_data(n, r, num_numerical_feats, num_cat_feats,
     # generating outcomes (continuous and binary)
     if diff_dist:
         # causal effect params
-        effect_param_num_min = [np.random.uniform(-1,1) for i in range(num_numerical_feats)]
-        effect_param_cat_min = [np.random.uniform(-1,1) for i in range(num_cat_feats)]
-        effect_param_num_maj = [np.random.uniform(-1,1) for i in range(num_numerical_feats)]
-        effect_param_cat_maj = [np.random.uniform(-1,1) for i in range(num_cat_feats)]
+        #effect_param_num_min = [np.random.uniform(-1,1) for i in range(num_numerical_feats)]
+        effect_param_num_min = [5 for i in range(num_numerical_feats)]
+        #effect_param_cat_min = [np.random.uniform(-1,1) for i in range(num_cat_feats)]
+        effect_param_cat_min = [-1000 for i in range(num_cat_feats)]
+        #effect_param_num_maj = [np.random.uniform(-1,1) for i in range(num_numerical_feats)]
+        effect_param_num_maj = [5 for i in range(num_numerical_feats)]
+        #effect_param_cat_maj = [np.random.uniform(-1,1) for i in range(num_cat_feats)]
+        effect_param_cat_maj = [-1000 for i in range(num_cat_feats)]
         #outcome_continuous_min = 1/(1+np.exp(-np.matmul(num_features_min,effect_param_num_min))) # logit model + no added noise
         outcome_continuous_min = 1/(1+np.exp(-(np.matmul(num_features_min,effect_param_num_min) + \
                                 np.matmul(cat_feats_min,effect_param_cat_min)))) # logit model + no added noise
         #outcome_continuous_maj = 1/(1+np.exp(-np.matmul(num_features_maj,effect_param_num_maj)))
         outcome_continuous_maj = 1/(1+np.exp(-(np.matmul(num_features_maj,effect_param_num_maj) + \
-                                np.matmul(cat_feats_maj,effect_param_cat_maj)))) # logit model + no added noise
+                                np.matmul(cat_feats_maj,effect_param_cat_maj) + sens_comb_maj))) # logit model + no added noise
         outcome_binary_min = np.where(outcome_continuous_min >= 0.5, 1, 0) # logistic decision boundary
         outcome_binary_maj = np.where(outcome_continuous_maj >= 0.5, 1, 0)
         outcome_binary = np.hstack((outcome_binary_min, outcome_binary_maj)).reshape(n,1)
         if show_vis:
             distribution_plot(outcome_continuous_min, outcome_continuous_maj, diff_dist=True)
     else:
-        effect_param = [0.5, -0.2, 0.1]
-        effect_param_num = [np.random.uniform(-1,1) for i in range(num_numerical_feats)]
-        effect_param_cat = [np.random.uniform(-1,1) for i in range(num_cat_feats)]
+        effect_param_num = [5 for i in range(num_numerical_feats)]
+        #effect_param_num = [np.random.uniform(-1,1) for i in range(num_numerical_feats)]
+        effect_param_cat = [-1000 for i in range(num_cat_feats)]
+        #effect_param_cat = [np.random.uniform(-1,1) for i in range(num_cat_feats)]
         #outcome_continuous = 1/(1+np.exp(-(np.matmul(num_features,effect_param)))) # logit model + no added noise
         outcome_continuous = 1/(1+np.exp(-(np.matmul(num_features,effect_param_num) + \
-                                np.matmul(cat_feats,effect_param_cat)))) # logit model + no added noise
+                                np.matmul(cat_feats,effect_param_cat) + sens_comb))) # logit model + no added noise
         outcome_binary = np.where(outcome_continuous >= 0.5, 1, 0).reshape(n,1) # logistic decision boundary
         if show_vis:
             distribution_plot(outcome=outcome_continuous, diff_dist=False)

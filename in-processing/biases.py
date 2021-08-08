@@ -28,10 +28,14 @@ def representation(df, feat_conditions, beta):
     df_bias = df.copy()
     drop_idx = []
 
+    #print('Before: ', len(df_bias))
+
     for i in df_bias.index[feat_conditions]:
         if random.uniform(0,1) <= beta: drop_idx.append(i)
 
-    return df_bias.drop(drop_idx)
+    df_bias = df_bias.drop(drop_idx)
+    #print('After: ', len(df_bias))
+    return df_bias
 
 '''
 Measurement Bias
@@ -102,8 +106,8 @@ def inject_noise_num(df_noise, feature, noise_prob,
         # noise injection criteria
         if random.uniform(0,1) <= noise_prob:
             # perturb specific noise value
-            df_noise[feature].iloc[i] += get_noise(df_noise, feature,
-                                      noise_dist, noise_dist_params)
+            df_noise[feature].iloc[i] += int(get_noise(df_noise, feature,
+                                      noise_dist, noise_dist_params))
 
     return df_noise
 
@@ -192,7 +196,6 @@ def measurement(df, feature, feature_type, noise_dist = np.random.normal,
     else:
         df_bias = subgroup_measurement(df, df_bias, feature, feature_type, noise_prob,
                                        noise_dist, noise_dist_params, subgroups)
-
 
     return df_bias
 
