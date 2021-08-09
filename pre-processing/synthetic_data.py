@@ -184,7 +184,9 @@ def get_synthetic_data(n, r, num_numerical_feats, num_cat_feats,
 
     num_features_min = get_num_feats(ranges, num_types, num_min)
     num_features_maj = get_num_feats(ranges, num_types, num_maj)
-    num_features = np.concatenate((num_features_min, num_features_maj))
+    if diff_dist:
+        num_features = np.concatenate((num_features_min, num_features_maj))
+    else: num_features = get_num_feats(ranges, num_types, n)
 
     # binary sensitive attribute, 0: minority, 1: majority
     sens_feat = get_sensitive_feat(r=r, n=n)
@@ -198,7 +200,9 @@ def get_synthetic_data(n, r, num_numerical_feats, num_cat_feats,
     "Each categorical feature must have a specification for its number of levels"
     cat_feats_min = get_cat_feats(num_cat_feats, cat_levels, num_min)
     cat_feats_maj = get_cat_feats(num_cat_feats, cat_levels, num_maj)
-    cat_feats = get_cat_feats(num_cat_feats, cat_levels, n)
+    if diff_dist:
+        cat_feats = np.concatenate((cat_feats_min, cat_feats_maj))
+    else: cat_feats = get_cat_feats(num_cat_feats, cat_levels, n)
 
     # generating outcomes (continuous and binary)
     if diff_dist:
