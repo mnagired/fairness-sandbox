@@ -10,7 +10,6 @@ from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, roc_curv
 from collections import Counter
 
 import fairlearn
-from fairlearn.metrics import MetricFrame
 from fairlearn.metrics import *
 from fairlearn.reductions import ExponentiatedGradient, DemographicParity
 # import aif360
@@ -23,18 +22,13 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.linear_model import LogisticRegression
 
 import copy
-import json
 # End: Packages for Fairness
 
 # For synthetic data
 from synthetic_data import get_synthetic_data
 
-# For bias injection
-from biases import under_sampling
-from biases import representation
 
 from contextlib import contextmanager
 import logging
@@ -43,18 +37,12 @@ import os
 from flask import current_app, g
 
 class Dataset:
-    def __init__(self, short_name = '', path = '', cat_cols = [], num_cols = [],
-                 sens_attr = '', has_sens_attr = True,
-                 sep = '', synthetic = False):
+    def __init__(self, short_name = '', path = '', cat_cols = [], num_cols = []):
         self.short_name = short_name
         self.path = path
         self.cat_cols = cat_cols
         self.num_cols = num_cols
-        self.has_sens_attr = has_sens_attr
-        if has_sens_attr:
-            self.sens_attr = sens_attr
-        if not synthetic:
-            self.df = pd.read_csv(path, sep = sep)
+        self.df = pd.read_csv(path, sep = ';')
 
 # each dataset is a dictionary where keys = short name, values = Dataset object
 
@@ -74,20 +62,9 @@ df_sens = None # Consider not using global variable
 y_pred_mitigated_true = None
 y_pred_mitigated_bias = None
 y_pred_mitigated_bias_on_true = None
-
 curr_df = None
-X_bias = None
-y_bias = None
-df_train = None
-df_test = None
-y_pred_bias = None
-y_pred_bias_on_true = None
-sens_feat_true = None
-sens_feat_bias = None
 
 
-
-##### Helper function #####
 
 def add_dataset(dataset):
     global datasets # referencing the global variable datasets
@@ -107,8 +84,6 @@ def threshold(df, g_1=0.3, g_2=0.3, g_3=0.4, threshold=11):
                                  if g_1*row['G1'] + g_2*row['G2'] + g_3*row['G3'] >= threshold
                                  else 0, axis=1)
 
-# OHE categorical features (prompt for user's choice here?)
-
 # get indices of categorical columns
 def get_cat_cols(dataset):
     df = dataset.df
@@ -117,40 +92,187 @@ def get_cat_cols(dataset):
         res.append(df.columns.get_loc(col))
     return res
 
-
-'''
-    train_ratio: is the proportion of data examples in the training set
-        (1-train_ratio is proportion in unbiased testing set)
-'''
-def train_test_split(df, train_ratio = 0.5):
+# if verbose, shows "Finished iteration: ... "
+# if apply_fairness, uses fairness intervention
+def tradeoff_visualization(classifier, apply_fairness = False, verbose = False):
     
-    df_train = df.loc[range(0,int(len(df)*train_ratio)), :]
-    df_test = df.loc[range(int(len(df)*train_ratio)+1, len(df)), :]
+    bias_amts = list(range(0,200,10))
+    accuracy_on_true = []
+    accuracy_on_biased = []
+    accuracy_on_true_mitigated = []
+    accuracy_on_biased_mitigated = []
+    eod_on_true = []
+    eod_on_biased = []
+    dataset_size_true = np.full(shape=len(bias_amts), fill_value= X_true.shape[0]).tolist()
+    dataset_size_bias = []
+    table = []
+
+    classifier_true = classifier.fit(X_true, y_true)
+    y_pred_truth = classifier_true.predict(X_true)
+
+    # Todo: check if set as global variable
+    df_por = datasets['student_por'].df
+    df_favored = df_por[df_por['address'] == 'U']
+    df_unfavored = df_por[df_por['address'] == 'R']
+    cat_cols = get_cat_cols(datasets['student_por'])
+
+    df_undersampled = df_unfavored.sample(n=len(df_unfavored), random_state=42)
+
+    for i in range(20):
+        # under-sampling process
+        if i == 0:
+            df_undersampled = df_undersampled.sample(n=len(df_undersampled), random_state=42)
+        else:
+            df_undersampled = df_undersampled.sample(n=len(df_undersampled)-10, random_state=42)
+
+        # combine undersampled and original favored class to create dataset
+        df_concat = pd.concat([df_favored,df_undersampled])
+        df_concat.shape
+        df_sens = df_concat['address']
+
+        # format data
+        X_bias = df_concat.iloc[:, :-2].values
+        y_bias = df_concat.iloc[:, -1].values
+
+        # OHE
+        ct = ColumnTransformer(transformers=[('encoder', OneHotEncoder(), cat_cols)], remainder='passthrough')
+        X_bias_true = np.array(ct.fit_transform(X_bias))
+        y_bias_true = df_concat['pass']
+
+        dataset_size_bias.append(X_bias_true.shape[0])
+        classifier_bias = classifier.fit(X_bias_true, y_bias_true)
+        
+        if apply_fairness:
+            constraint = DemographicParity()
+            classifier_mitigated_bias = ExponentiatedGradient(classifier_bias, constraint)
+            classifier_mitigated_bias.fit(X_bias_true, y_bias_true, sensitive_features = df_sens)
+            
+            # testing on biased data WITH fairness intervention
+            y_pred_mitigated_bias = classifier_mitigated_bias.predict(X_bias_true)
+            
+            # testing on GT data WITH fairness intervention
+            y_pred_mitigated_bias_on_true = classifier_mitigated_bias.predict(X_true)
+        
+        # testing on biased data withOUT fairness intervention
+        y_pred_bias = classifier_bias.predict(X_bias_true)
+        
+        # testing on GT data withOUT fairness intervention
+        y_pred_bias_on_true = classifier_bias.predict(X_true)
+
+        # model performance
+        
+        if apply_fairness:
+            # on biased data
+            acc_bias_mitigated = accuracy_score(y_pred=y_pred_mitigated_bias, y_true=y_bias_true)
+            accuracy_on_biased_mitigated.append(acc_bias_mitigated)
+            # on GT data
+            acc_bias_mitigated_on_true = accuracy_score(y_pred=y_pred_mitigated_bias_on_true, y_true=y_true)
+            accuracy_on_true_mitigated.append(acc_bias_mitigated_on_true)
+        
+        # on biased data
+        acc_bias = accuracy_score(y_pred=y_pred_bias, y_true=y_bias_true)
+        accuracy_on_biased.append(acc_bias)
+        # on GT data
+        acc_bias_on_true = accuracy_score(y_pred=y_pred_bias_on_true, y_true=y_true)
+        accuracy_on_true.append(acc_bias_on_true)
+
+        # fairness performance (TODO)
+        '''
+        eod_true = equalized_odds_difference(y_true=y_bias_true, y_pred = y_pred_bias, sensitive_features=df_sens)
+        eod_on_true.append(eod_true)
+
+        eod_bias_on_true = equalized_odds_difference(y_true=y_true, y_pred = y_pred_bias_on_true, sensitive_features=sens_attrs[1])
+        eod_on_biased.append(eod_bias_on_true)
+        '''
+
+        # table visualization 
+        table_elem = [i*10, acc_bias, acc_bias_on_true]
+        table.append(table_elem)
+        
+        if verbose:
+            print("Finished Iteration: ", len(df_concat))
+
+    return bias_amts, dataset_size_true, dataset_size_bias, accuracy_on_biased, accuracy_on_true, eod_on_biased, eod_on_true
+
+
+def accuracy_visualizations(bias_amts, dataset_size_true, dataset_size_bias,
+                            accuracy_on_biased = [], accuracy_on_true = [],
+                            accuracy_on_biased_mitigated = [],
+                            accuracy_on_true_mitigated = [], fairness = False):
     
-    return df_train, df_test
+    if fairness:
+        plt.figure(figsize=(17,7))
 
-'''
+        plt.subplot(1,2,1)
+        plt.plot(bias_amts, accuracy_on_true_mitigated, label = 'Ground Truth')
+        plt.plot(bias_amts, accuracy_on_biased_mitigated, label = 'Biased Data')
+        plt.xlabel("Amount of Bias (number of minority samples removed)")
+        plt.ylabel("Accuracy Score")
+        plt.axhline(y=accuracy_score(y_pred_truth, y_true), color = "green", label = "Ground Truth Model Accuracy", alpha = 0.5)
+        plt.title("Biased Model Accuracy")
+        plt.ylim(0.92, 0.99)
+        plt.legend()
 
-This function separates the minority and majority classes
+        plt.subplot(1,2,2)
+        plt.plot(bias_amts, dataset_size_true, label = 'Ground Truth')
+        plt.plot(bias_amts, dataset_size_bias, label = 'Biased Data')
+        plt.xlabel("Amount of Bias (number of minority samples removed)")
+        plt.ylabel("Dataset Size")
+        plt.legend()
 
-Parameters:
-    
-    sens_attr: sensitive attribute
-    maj_val: value of sens_attr which indicates majority class
-    min_val: value of sens_attr which indicates minority class
+        # plt.show()
+        plt.savefig('client/public/img/figure.png')
+        plt.close()
+        
+    else:
+        plt.figure(figsize=(17,7))
 
-'''
-def get_maj_min(df, sens_attr, maj_val, min_val):
-    assert sens_attr in list(df.columns), "Sensitive attribute must be a column in the dataframe!"
-    df_majority = df[df[sens_attr] == maj_val]
-    df_minority = df[df[sens_attr] == min_val]
-    
-    return df_majority, df_minority
+        plt.subplot(1,2,1)
+        plt.plot(bias_amts, accuracy_on_true, label = 'Ground Truth')
+        plt.plot(bias_amts, accuracy_on_biased, label = 'Biased Data')
+        plt.xlabel("Amount of Bias (number of minority samples removed)")
+        plt.ylabel("Accuracy Score")
+        plt.axhline(y=accuracy_score(y_pred_truth, y_true), color = "green", label = "Ground Truth Model Accuracy", alpha = 0.5)
+        plt.title("Biased Model Accuracy")
+        plt.ylim(0.92, 0.99)
+        plt.legend()
 
+        plt.subplot(1,2,2)
+        plt.plot(bias_amts, dataset_size_true, label = 'Ground Truth')
+        plt.plot(bias_amts, dataset_size_bias, label = 'Biased Data')
+        plt.xlabel("Amount of Bias (number of minority samples removed)")
+        plt.ylabel("Dataset Size")
+        plt.legend()
 
-##### End Helper Function #####
+        # plt.show()
+        plt.savefig('client/public/img/figure.png')
+        plt.close()
 
-def setup_old():
+def fairness_visualizations(bias_amts, eod_on_true = [], eod_on_biased = [],
+                           eod_on_biased_mitigated = [], eod_on_true_mitigated = [],
+                           fairness = False):
+    if fairness:
+        plt.plot(bias_amts, eod_on_true_mitigated, label = 'Ground Truth')
+        plt.plot(bias_amts, eod_on_biased_mitigated, label = 'Biased Data')
+        plt.xlabel("Amount of Bias (number of minority samples removed)")
+        plt.ylabel("Equalized Odds Difference")
+        plt.legend()
+        plt.title("Biased Model Equalized Odds Difference")
+        # plt.show()
+        plt.savefig('client/public/img/figure2.png')
+        plt.close()
+    else:
+        plt.plot(bias_amts, eod_on_true, label = 'Ground Truth')
+        plt.plot(bias_amts, eod_on_biased, label = 'Biased Data')
+        plt.xlabel("Amount of Bias (number of minority samples removed)")
+        plt.ylabel("Equalized Odds Difference")
+        plt.legend()
+        plt.title("Biased Model Equalized Odds Difference")
+        # plt.show()
+        plt.savefig('client/public/img/figure2.png')
+        plt.close()
+
+def setup():
     global datasets, X_true, y_true, curr_df
     current_app.logger.info('Adding dataset')
     # example - adding a dataset
@@ -192,52 +314,42 @@ def setup_old():
     # pre-process data
     X_true, y_true = dataPreprocess()
     curr_df = df_por
-
-    df_synthetic = get_synthetic_data(n=1000, r = 0.25, num_numerical_feats=3, num_cat_feats=2,
-                                  ranges = [(1, 100), (0, 10), (-10, 25)],
-                                  num_types=(0, 1, 1),
-                                  cat_levels=[2,3], diff_dist=True, label_noise = 0.1)
-
-    # add to dictionary of datasets
-    path_synthetic = 'datasets/synthetic_data.csv'
-    df_synthetic.to_csv(path_synthetic)
-    add_dataset(Dataset(short_name="synthetic", path=path_synthetic, cat_cols=[], num_cols=[], synthetic=True, sens_attr = "sens_feat"))
-    current_app.logger.info(datasets['synthetic'].head())
-    
     return
 
-def setup():
-    global datasets, X_true, y_true, df_train, df_test, curr_df
-    df_synthetic = get_synthetic_data(n=1000, r = 0.25, num_numerical_feats=3, num_cat_feats=2,
-                                  ranges = [(1, 100), (0, 10), (-10, 25)],
-                                  num_types=(0, 1, 1),
-                                  cat_levels=[2,3], diff_dist=True, label_noise = 0.1)
+def test_plot(featureName):
+    current_app.logger.info(f'plotting for {featureName}')
+    plot_counts(datasets['student_por'].df, featureName)
+    return "./img/figure.png"
 
-    # add to dictionary of datasets
-    path_synthetic = 'datasets/synthetic_data.csv'
-    df_synthetic.to_csv(path_synthetic)
-    add_dataset(Dataset(short_name="synthetic", path=path_synthetic, cat_cols=[], num_cols=[], synthetic=True, sens_attr = "sens_feat"))
-    curr_df = df_synthetic
-    current_app.logger.info(df_synthetic.head())
+def plotBefore():
+    return('Ground Truth Label Distribution \n{}'.format(Counter(datasets['student_por'].df['pass'])))
+    # return str(pd.value_counts(datasets['student_por'].df['pass'], sort=True))
+    plot_counts_data(datasets['student_por'].df['pass'])
+    # current_app.logger.info(datasets['student_por'].df['pass'].count())
+    current_app.logger.info('hello')
+    return "./img/figure.png"
 
-    # Potentially splitting these
-    df_train, df_test = train_test_split(curr_df)
-    df_majority, df_minority = get_maj_min(df_train, 'sens_feat', 1, 0)
-
-    X_train = df_train.iloc[:, :-1].values
-    y_train = df_train.iloc[:, -1].values
-    X_true = df_test.iloc[:, :-1].values
-    y_true = df_test.iloc[:, -1].values
-
-    sens_attrs_true = [df_test[datasets['synthetic'].sens_attr]]
-
-    return
+def plot_counts_data(data):
+    count = pd.value_counts(data, sort = True)
+    fig = count.plot(kind = 'bar', rot = 0)
+    fig.figure.savefig('client/public/img/figure.png')
+    plt.close()
 
 def plotCounts(featureName):
     if featureName in curr_df.columns:
-        results = curr_df[featureName].value_counts(normalize=True)
-        current_app.logger.info(results)
-        return results.to_json()
+        temp = curr_df[featureName].value_counts(normalize=True)
+        # fig.figure.savefig('client/public/img/figure.png')
+        current_app.logger.info(temp)
+        return temp.to_json()
+    else:
+        current_app.logger.info("Error! Please enter a valid feature.")
+
+# Old. Using matplotlib
+def plot_counts(df, attr):
+    if attr in df.columns:
+        fig = df[attr].value_counts(normalize=True).plot.barh()
+        fig.figure.savefig('client/public/img/figure.png')
+        current_app.logger.info("Plot success!")
     else:
         current_app.logger.info("Error! Please enter a valid feature.")
 
@@ -260,7 +372,7 @@ def dataPreprocess():
     y_true = df_por['pass']
     return (X_true, y_true)
 
-def injectBias_old():
+def injectBias():
     global datasets, X_bias_true, y_bias_true, df_sens
     df_por = datasets['student_por'].df
     
@@ -320,40 +432,7 @@ def injectBias_old():
     plt.close()
     return "./img/figure.png"
 
-def injectBias():
-    global datasets, X_bias, y_bias, df_sens
-
-    biases = dict()
-
-    def add_bias(bias_func, short_name):
-        biases[short_name] = bias_func
-
-    # add_bias(under_sampling, 'under_sampling')
-    # add_bias(omitted_variable, 'omitted_variable')
-    # add_bias(random_over_sampling, 'random_over_sampling')
-    # add_bias(over_sampling, 'over_sampling')
-    # add_bias(label_noise, 'label_noise')
-    # add_bias(measurement, 'measurement')
-    add_bias(representation, 'representation')
-    #df_bias = biases['omitted_variable'](datasets, df_train, 'synthetic', 'num1', is_sens_attr=False)
-    #df_bias = biases['random_over_sampling'](df_train, 'sens_feat', 1, 0, 2)
-    #df_bias = biases['over_sampling'](df_train, df_minority, 'sens_feat', 1, 0, 2, type=2)
-    #df_bias = biases['label_noise'](df_train, 'sens_feat', 'categorical', 1, 0.2)
-    #df_bias = biases['measurement'](df_train, 'cat2', 'categorical', noise_prob=1, noise_type=1, subgroups=[2])
-    df_bias = biases['representation'](df_train, (df_train['num1'] > 0) & (df_train['cat1'] == 0), 0.5)
-
-    # for fairness measures later
-    if datasets['synthetic'].has_sens_attr:
-        df_sens = df_bias[datasets['synthetic'].sens_attr]
-
-    # format data
-    X_bias = df_bias.iloc[:, :-1].values
-    y_bias = df_bias.iloc[:, -1].values
-
-    return "success" #temp
-
-
-def trainModel_old():
+def trainModel():
     global datasets, X_bias_true, y_bias_true, y_pred_truth, classifier_true, classifier_bias
 
     classifier = DecisionTreeClassifier(min_samples_leaf = 10, max_depth = 4)
@@ -371,34 +450,6 @@ def trainModel_old():
         f"Accuracy of Biased Model on Biased Data: {accuracy_score(y_pred_bias, y_bias_true)} | " \
         f"Accuracy of Biased Model on Ground Truth Data: {accuracy_score(y_pred_bias_on_true, y_true)}"
     return result_text
-
-def trainModel():
-    global datasets, y_pred_truth, classifier_true, classifier_bias, y_pred_bias, y_pred_bias_on_true, sens_feat_true, sens_feat_bias
-
-    classifier = LogisticRegression(random_state = 42)
-
-    classifier_true = classifier.fit(X_true, y_true)
-    y_pred_truth = classifier_true.predict(X_true)
-
-    classifier_bias = classifier.fit(X_bias, y_bias)
-    y_pred_bias = classifier_bias.predict(X_bias)
-    y_pred_bias_on_true = classifier_bias.predict(X_true)
-
-    sens_feat_true = df_test['sens_feat']
-    sens_feat_bias = df_sens
-
-    results = {
-        "Accuracy of Ground Truth Model on Ground Truth Data": accuracy_score(y_pred_truth, y_true),
-        "Accuracy of Biased Model on Biased Data": accuracy_score(y_pred_bias, y_bias),
-        "Accuracy of Biased Model on Ground Truth Data": accuracy_score(y_pred_bias_on_true, y_true)
-    }
-    current_app.logger.info(results)
-    # gm_true = MetricFrame(metrics=accuracy_score,y_true=y_true, y_pred=y_pred_truth, sensitive_features = sens_feat_true)
-    # current_app.logger.info("Overall Accuracy: ", gm_true.overall)
-    # current_app.logger.info("Group Accuracy : ", gm_true.by_group[0])
-    # current_app.logger.info("Group Accuracy : ", gm_true.by_group[1])
-
-    return json.dumps(results)
 
 def fairnessIntervention():
     global y_pred_mitigated_true, y_pred_mitigated_bias, y_pred_mitigated_bias_on_true

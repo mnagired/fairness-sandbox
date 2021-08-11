@@ -35,10 +35,6 @@ def plotCounts(featureName):
     return (sandbox.plotCounts(featureName))
     # return "./img/figure.png"
 
-@app.route("/getBefore")
-def getBefore():
-    return (sandbox.plotBefore())
-
 @app.route("/injectBias")
 def injectBias():
     return (sandbox.injectBias())

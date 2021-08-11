@@ -25,16 +25,6 @@
         console.log(chartValue);
         showPlot = true;
       })
-
-
-
-        // data = d.text();
-        // console.log(data);
-        // const keys = Object.keys(data);
-        // const values = Object.values(data);
-        // console.log(keys);
-        // console.log(values);
-      // })
   }
 
   function getBefore() {
@@ -48,12 +38,28 @@
       .then(d => d.text())
       .then(d => (txt = d));
   }
-  
-  function injectBiasUnder() {
-    fetch("./injectBiasUnder")
+
+  function trainModel() {
+    fetch("./trainModel")
       .then(d => d.text())
-      .then(d => (txt = d));
+      .then(d =>{
+        txt = "";
+        console.log(d);
+        let data = JSON.parse(d);
+        // let data = d;
+
+        const keys = Object.keys(data);
+        const values = Object.values(data);
+
+        chartValue = values;
+        chartKey = keys;
+        chartVar = "Accuracy";
+        console.log(chartKey);
+        console.log(chartValue);
+        showPlot = true;
+    })
   }
+  
 </script>
 
 
@@ -69,9 +75,9 @@
 <button on:click={plotCounts}>Visualize</button>
 <button on:click={() =>{showPlot = false}}>Hide</button>
 <br/>
-<button on:click={getBefore}>Before</button>
-<button on:click={injectBias}>Inject Bias - Oversample</button>
-<button on:click={injectBiasUnder}>Inject Bias - Undersample</button>
+<!-- <button on:click={getBefore}>Before</button> -->
+<button on:click={injectBias}>Inject Bias</button>
+<button on:click={trainModel}>Train Model</button>
 
 {#if showPlot}
   <Bar bind:data={chartValue} bind:labels={chartKey} bind:chartVar={chartVar}/>
