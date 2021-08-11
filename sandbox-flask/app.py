@@ -51,9 +51,9 @@ def fairnessIntervention():
 def fairnessTradeoff():
     return (sandbox.fairnessTradeoff())
 
-@app.route("/fairnessTradeoff2")
-def fairnessTradeoff2():
-    return (sandbox.fairnessTradeoff2())
+# @app.route("/fairnessTradeoff2")
+# def fairnessTradeoff2():
+#     return (sandbox.fairnessTradeoff2())
 
 
 if __name__ == "__main__":

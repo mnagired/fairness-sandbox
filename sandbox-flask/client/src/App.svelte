@@ -1,14 +1,19 @@
 <script>
   // import { Chart } from 'chart.js/dist/chart.js';
   import Bar from './Bar.svelte'
+  import Line from './Line.svelte'
+  import {generateDataForLinePlot} from './util/utils.js'
 
   let txt = '';
   let plot = '';
   let showPlot = false;
+  let showLine = false;
 
   let chartVar = 'sex';
   let chartKey = ['1','2','3','4','5','6'];
   let chartValue = [1,2,3,4,5,6];
+  let lineLabels = [];
+  let lineDataset = [];
 
   function plotCounts() {
     fetch(`./plotCounts/${chartVar}`)
@@ -59,7 +64,31 @@
         showPlot = true;
     })
   }
-  
+
+  function fairnessIntervention() {
+    showPlot = false;
+    txt = "loading";
+    fetch("./fairnessIntervention")
+      .then(d => d.text())
+      .then(d => (txt = d));
+  }
+
+  function fairnessTradeoff() {
+    showPlot = false;
+    txt = "Processing...";    
+    fetch("./fairnessTradeoff")
+      .then(d => d.text())
+      .then(d =>{
+        txt = "";
+        console.log(d);
+        let data = JSON.parse(d);
+        let tmp = generateDataForLinePlot(data);
+        lineLabels = tmp[0];
+        lineDataset = tmp[1];
+        console.log(lineDataset);
+        showLine = true;
+    });
+  }
 </script>
 
 
@@ -78,9 +107,15 @@
 <!-- <button on:click={getBefore}>Before</button> -->
 <button on:click={injectBias}>Inject Bias</button>
 <button on:click={trainModel}>Train Model</button>
+<button on:click={fairnessIntervention}>Fairness Intervention</button>
+<button on:click={fairnessTradeoff}>Fairness Trade-off</button>
 
 {#if showPlot}
   <Bar bind:data={chartValue} bind:labels={chartKey} bind:chartVar={chartVar}/>
+{/if}
+
+{#if showLine}
+  <Line bind:labels={lineLabels} bind:dataset={lineDataset}/>
 {/if}
 
 <p>{txt}</p>

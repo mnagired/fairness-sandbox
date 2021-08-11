@@ -13,6 +13,8 @@ import fairlearn
 from fairlearn.metrics import MetricFrame
 from fairlearn.metrics import *
 from fairlearn.reductions import ExponentiatedGradient, DemographicParity
+from fairlearn.preprocessing import CorrelationRemover
+
 # import aif360
 
 import imblearn
@@ -33,7 +35,7 @@ import json
 from synthetic_data import get_synthetic_data
 
 # For bias injection
-from biases import under_sampling
+from biases import *
 from biases import representation
 
 from contextlib import contextmanager
@@ -84,10 +86,17 @@ y_pred_bias = None
 y_pred_bias_on_true = None
 sens_feat_true = None
 sens_feat_bias = None
-
+biases = None
+df_minority = None
+# X_train = None # potentially not needed
+# y_train = None # potentially not needed
 
 
 ##### Helper function #####
+
+def add_bias(bias_func, short_name):
+    global biases
+    biases[short_name] = bias_func
 
 def add_dataset(dataset):
     global datasets # referencing the global variable datasets
@@ -146,6 +155,83 @@ def get_maj_min(df, sens_attr, maj_val, min_val):
     df_minority = df[df[sens_attr] == min_val]
     
     return df_majority, df_minority
+
+# if verbose, shows "Finished iteration: ... "
+# if apply_fairness, uses fairness intervention
+def tradeoff_visualization(bias_amts, classifier, X_true, y_true, 
+                           df_train, sensitive_feature = "cat",
+                           is_synthetic = False,
+                           apply_fairness = False, verbose = False):
+    
+    accuracy_on_true = []
+    accuracy_on_biased = []
+    accuracy_on_true_mitigated = []
+    accuracy_on_biased_mitigated = []
+    
+    count = 0
+
+    for bias in bias_amts:
+        
+        df_train_copy = df_train.copy()
+        
+        df_bias = biases['over_sampling'](df_train, df_minority, 'sens_feat', 1, 0, 2, type=2)
+        df_sens = df_bias[sensitive_feature]
+
+        # format data
+        X_bias = df_bias.iloc[:, :-1].values
+        y_bias = df_bias.iloc[:, -1].values
+        
+        if not is_synthetic:
+            # OHE
+            ct = ColumnTransformer(transformers=[('encoder', OneHotEncoder(), cat_cols)], remainder='passthrough')
+            X_bias_true = np.array(ct.fit_transform(X_bias))
+        else:
+            X_bias_true = X_bias
+        
+        y_bias_true = df_bias.iloc[:, -1].values
+        
+        classifier_bias = classifier.fit(X_bias_true, y_bias_true)
+        
+        if apply_fairness:
+            constraint = DemographicParity()
+            classifier_mitigated_bias = ExponentiatedGradient(classifier_bias, constraint)
+            classifier_mitigated_bias.fit(X_bias_true, y_bias_true, sensitive_features = df_sens)
+            
+            # testing on biased data WITH fairness intervention
+            y_pred_mitigated_bias = classifier_mitigated_bias.predict(X_bias_true)
+            
+            # testing on GT data WITH fairness intervention
+            y_pred_mitigated_bias_on_true = classifier_mitigated_bias.predict(X_true)
+        
+        # testing on biased data withOUT fairness intervention
+        y_pred_bias = classifier_bias.predict(X_bias_true)
+        
+        # testing on GT data withOUT fairness intervention
+        y_pred_bias_on_true = classifier_bias.predict(X_true)
+
+        # model performance
+        
+        if apply_fairness:
+            # on biased data
+            acc_bias_mitigated = accuracy_score(y_pred=y_pred_mitigated_bias, y_true=y_bias_true)
+            accuracy_on_biased_mitigated.append(acc_bias_mitigated)
+            # on GT data
+            acc_bias_mitigated_on_true = accuracy_score(y_pred=y_pred_mitigated_bias_on_true, y_true=y_true)
+            accuracy_on_true_mitigated.append(acc_bias_mitigated_on_true)
+        
+        # on biased data
+        acc_bias = accuracy_score(y_pred=y_pred_bias, y_true=y_bias_true)
+        accuracy_on_biased.append(acc_bias)
+        # on GT data
+        acc_bias_on_true = accuracy_score(y_pred=y_pred_bias_on_true, y_true=y_true)
+        accuracy_on_true.append(acc_bias_on_true)
+        
+        if verbose:
+            print("Finished Iteration: ", count)
+            count +=1
+
+    return bias_amts, accuracy_on_biased, accuracy_on_true, \
+           accuracy_on_biased_mitigated, accuracy_on_true_mitigated
 
 
 ##### End Helper Function #####
@@ -207,7 +293,7 @@ def setup_old():
     return
 
 def setup():
-    global datasets, X_true, y_true, df_train, df_test, curr_df
+    global datasets, X_true, y_true, df_train, df_test, curr_df, df_minority
     df_synthetic = get_synthetic_data(n=1000, r = 0.25, num_numerical_feats=3, num_cat_feats=2,
                                   ranges = [(1, 100), (0, 10), (-10, 25)],
                                   num_types=(0, 1, 1),
@@ -321,19 +407,16 @@ def injectBias_old():
     return "./img/figure.png"
 
 def injectBias():
-    global datasets, X_bias, y_bias, df_sens
+    global datasets, X_bias, y_bias, df_sens, biases
 
     biases = dict()
 
-    def add_bias(bias_func, short_name):
-        biases[short_name] = bias_func
-
-    # add_bias(under_sampling, 'under_sampling')
-    # add_bias(omitted_variable, 'omitted_variable')
-    # add_bias(random_over_sampling, 'random_over_sampling')
-    # add_bias(over_sampling, 'over_sampling')
-    # add_bias(label_noise, 'label_noise')
-    # add_bias(measurement, 'measurement')
+    add_bias(under_sampling, 'under_sampling')
+    add_bias(omitted_variable, 'omitted_variable')
+    add_bias(random_over_sampling, 'random_over_sampling')
+    add_bias(over_sampling, 'over_sampling')
+    add_bias(label_noise, 'label_noise')
+    add_bias(measurement, 'measurement')
     add_bias(representation, 'representation')
     #df_bias = biases['omitted_variable'](datasets, df_train, 'synthetic', 'num1', is_sens_attr=False)
     #df_bias = biases['random_over_sampling'](df_train, 'sens_feat', 1, 0, 2)
@@ -400,7 +483,7 @@ def trainModel():
 
     return json.dumps(results)
 
-def fairnessIntervention():
+def fairnessIntervention_old():
     global y_pred_mitigated_true, y_pred_mitigated_bias, y_pred_mitigated_bias_on_true
     df_por = datasets['student_por'].df
     sens_attrs = [df_por['sex'], df_por['address']]
@@ -421,16 +504,66 @@ def fairnessIntervention():
     # result_text = "success"
     return result_text
 
-def fairnessTradeoff():
-    classifier = DecisionTreeClassifier(min_samples_leaf = 10, max_depth = 4)
-    bias_amts, dataset_size_true, dataset_size_bias, accuracy_on_biased, accuracy_on_true, eod_on_biased, eod_on_true = tradeoff_visualization(classifier, False, False)
-    accuracy_visualizations(bias_amts, dataset_size_true, dataset_size_bias, accuracy_on_biased, accuracy_on_true, eod_on_biased, eod_on_true, False)
-    # fairness_visualizations(bias_amts, eod_on_true, eod_on_biased, False)
-    return "./img/figure.png"
+def fairnessIntervention():
+    global y_pred_mitigated_true, y_pred_mitigated_bias, y_pred_mitigated_bias_on_true
 
-def fairnessTradeoff2():
-    classifier = DecisionTreeClassifier(min_samples_leaf = 10, max_depth = 4)
-    bias_amts, dataset_size_true, dataset_size_bias, accuracy_on_biased, accuracy_on_true, eod_on_biased, eod_on_true = tradeoff_visualization(classifier, True, False)
-    accuracy_visualizations(bias_amts, dataset_size_true, dataset_size_bias, accuracy_on_biased, accuracy_on_true, eod_on_biased, eod_on_true, True)
-    # fairness_visualizations(bias_amts, eod_on_true, eod_on_biased, False)
-    return "./img/figure.png"
+    # remover = CorrelationRemover(sensitive_feature_ids=[5])
+    remover_df = CorrelationRemover(sensitive_feature_ids=['sens_feat'])
+
+    # X_train_corr = remover.fit_transform(X_train)
+    df_corr = pd.DataFrame(remover_df.fit_transform(df_train))
+
+    df_temp = df_train.drop('sens_feat', axis=1)
+    df_corr.columns = df_temp.columns
+
+    # Exponentiated Gradient
+    constraint = DemographicParity()
+    mitigator_bias = ExponentiatedGradient(classifier_bias, constraint)
+    mitigator_bias.fit(X_bias, y_bias, sensitive_features = sens_feat_bias)
+    y_pred_mitigated_bias_on_true = mitigator_bias.predict(X_true)
+
+    current_app.logger.info("Accuracy of Biased Model + Fairness Intervention on Ground Truth Data: ",
+        accuracy_score(y_pred_mitigated_bias_on_true, y_true))
+
+    result_text = "success"
+    return result_text
+
+def fairnessTradeoff():
+    classifier = LogisticRegression()
+
+    bias_amts = np.divide(list(range(10,-1,-1)),10)
+
+    bias_amts, accuracy_on_biased, accuracy_on_true, \
+            accuracy_on_biased_mitigated, accuracy_on_true_mitigated = \
+    tradeoff_visualization(bias_amts, classifier, X_true, y_true,
+                        df_train, "sens_feat", is_synthetic=True,
+                        apply_fairness=True, verbose=True)
+
+    current_app.logger.info(accuracy_on_biased)
+
+    results = {
+        "Bias Amounts": bias_amts.tolist(),
+        "Tested On Biased Data + No Fairness Intervention": accuracy_on_biased,
+        "Tested On Biased Data + Fairness Intervention": accuracy_on_biased_mitigated,
+        "Tested On Ground Truth + No Fairness Intervention": accuracy_on_true,
+        "Tested On Ground Truth + Fairness Intervention": accuracy_on_true_mitigated
+    }
+
+    current_app.logger.info(results)
+
+    result_text = "success"
+    return json.dumps(results)
+
+# def fairnessTradeoff():
+#     classifier = DecisionTreeClassifier(min_samples_leaf = 10, max_depth = 4)
+#     bias_amts, dataset_size_true, dataset_size_bias, accuracy_on_biased, accuracy_on_true, eod_on_biased, eod_on_true = tradeoff_visualization(classifier, False, False)
+#     accuracy_visualizations(bias_amts, dataset_size_true, dataset_size_bias, accuracy_on_biased, accuracy_on_true, eod_on_biased, eod_on_true, False)
+#     # fairness_visualizations(bias_amts, eod_on_true, eod_on_biased, False)
+#     return "./img/figure.png"
+
+# def fairnessTradeoff2():
+#     classifier = DecisionTreeClassifier(min_samples_leaf = 10, max_depth = 4)
+#     bias_amts, dataset_size_true, dataset_size_bias, accuracy_on_biased, accuracy_on_true, eod_on_biased, eod_on_true = tradeoff_visualization(classifier, True, False)
+#     accuracy_visualizations(bias_amts, dataset_size_true, dataset_size_bias, accuracy_on_biased, accuracy_on_true, eod_on_biased, eod_on_true, True)
+#     # fairness_visualizations(bias_amts, eod_on_true, eod_on_biased, False)
+#     return "./img/figure.png"
