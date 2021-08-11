@@ -88,6 +88,8 @@ sens_feat_true = None
 sens_feat_bias = None
 biases = None
 df_minority = None
+df_bias = None
+currentBias = None
 # X_train = None # potentially not needed
 # y_train = None # potentially not needed
 
@@ -174,7 +176,18 @@ def tradeoff_visualization(bias_amts, classifier, X_true, y_true,
         
         df_train_copy = df_train.copy()
         
-        df_bias = biases['over_sampling'](df_train, df_minority, 'sens_feat', 1, 0, 2, type=2)
+        if currentBias == 'omitted_variable':
+            df_bias = biases['omitted_variable'](datasets, df_train, 'synthetic', 'num1', is_sens_attr=False)
+        elif currentBias == 'random_over_sampling':
+            df_bias = biases['random_over_sampling'](df_train, 'sens_feat', 1, 0, 2)
+        elif currentBias == 'over_sampling':
+            df_bias = biases['over_sampling'](df_train, df_minority, 'sens_feat', 1, 0, 2, type=2)
+        elif currentBias == 'label_noise':
+            df_bias = biases['label_noise'](df_train, 'sens_feat', 'categorical', 1, 0.2)
+        elif currentBias == 'measurement':
+            df_bias = biases['measurement'](df_train, 'cat2', 'categorical', noise_prob=1, noise_type=1, subgroups=[2])
+        else:
+            df_bias = biases['representation'](df_train, (df_train['num1'] > 0) & (df_train['cat1'] == 0), 0.5)
         df_sens = df_bias[sensitive_feature]
 
         # format data
@@ -407,7 +420,7 @@ def injectBias_old():
     return "./img/figure.png"
 
 def injectBias(selectedBias):
-    global datasets, X_bias, y_bias, df_sens, biases
+    global datasets, X_bias, y_bias, df_sens, biases, df_bias, currentBias
 
     biases = dict()
 
@@ -431,13 +444,7 @@ def injectBias(selectedBias):
         df_bias = biases['measurement'](df_train, 'cat2', 'categorical', noise_prob=1, noise_type=1, subgroups=[2])
     else:
         df_bias = biases['representation'](df_train, (df_train['num1'] > 0) & (df_train['cat1'] == 0), 0.5)
-
-    #df_bias = biases['omitted_variable'](datasets, df_train, 'synthetic', 'num1', is_sens_attr=False)
-    #df_bias = biases['random_over_sampling'](df_train, 'sens_feat', 1, 0, 2)
-    #df_bias = biases['over_sampling'](df_train, df_minority, 'sens_feat', 1, 0, 2, type=2)
-    #df_bias = biases['label_noise'](df_train, 'sens_feat', 'categorical', 1, 0.2)
-    #df_bias = biases['measurement'](df_train, 'cat2', 'categorical', noise_prob=1, noise_type=1, subgroups=[2])
-    # df_bias = biases['representation'](df_train, (df_train['num1'] > 0) & (df_train['cat1'] == 0), 0.5)
+    currentBias = selectedBias
 
     # for fairness measures later
     if datasets['synthetic'].has_sens_attr:
