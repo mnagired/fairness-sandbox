@@ -11,6 +11,7 @@ data preprocessing:
 
 bias injection:
 - select injection method [List of Biases]
+- bias amount: list of integer from 0 to 1 (except oversampling, which can be any integer)
 
 model selection:
 - e.g. logistic regression
