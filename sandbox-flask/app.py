@@ -35,9 +35,10 @@ def plotCounts(featureName):
     return (sandbox.plotCounts(featureName))
     # return "./img/figure.png"
 
-@app.route("/injectBias")
-def injectBias():
-    return (sandbox.injectBias())
+@app.route("/injectBias/<selectedBias>")
+def injectBias(selectedBias):
+    selectedBias = request.view_args['selectedBias']
+    return (sandbox.injectBias(selectedBias))
 
 @app.route("/trainModel")
 def trainModel():

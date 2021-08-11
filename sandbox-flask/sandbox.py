@@ -406,7 +406,7 @@ def injectBias_old():
     plt.close()
     return "./img/figure.png"
 
-def injectBias():
+def injectBias(selectedBias):
     global datasets, X_bias, y_bias, df_sens, biases
 
     biases = dict()
@@ -418,12 +418,26 @@ def injectBias():
     add_bias(label_noise, 'label_noise')
     add_bias(measurement, 'measurement')
     add_bias(representation, 'representation')
+
+    if selectedBias == 'omitted_variable':
+        df_bias = biases['omitted_variable'](datasets, df_train, 'synthetic', 'num1', is_sens_attr=False)
+    elif selectedBias == 'random_over_sampling':
+        df_bias = biases['random_over_sampling'](df_train, 'sens_feat', 1, 0, 2)
+    elif selectedBias == 'over_sampling':
+        df_bias = biases['over_sampling'](df_train, df_minority, 'sens_feat', 1, 0, 2, type=2)
+    elif selectedBias == 'label_noise':
+        df_bias = biases['label_noise'](df_train, 'sens_feat', 'categorical', 1, 0.2)
+    elif selectedBias == 'measurement':
+        df_bias = biases['measurement'](df_train, 'cat2', 'categorical', noise_prob=1, noise_type=1, subgroups=[2])
+    else:
+        df_bias = biases['representation'](df_train, (df_train['num1'] > 0) & (df_train['cat1'] == 0), 0.5)
+
     #df_bias = biases['omitted_variable'](datasets, df_train, 'synthetic', 'num1', is_sens_attr=False)
     #df_bias = biases['random_over_sampling'](df_train, 'sens_feat', 1, 0, 2)
     #df_bias = biases['over_sampling'](df_train, df_minority, 'sens_feat', 1, 0, 2, type=2)
     #df_bias = biases['label_noise'](df_train, 'sens_feat', 'categorical', 1, 0.2)
     #df_bias = biases['measurement'](df_train, 'cat2', 'categorical', noise_prob=1, noise_type=1, subgroups=[2])
-    df_bias = biases['representation'](df_train, (df_train['num1'] > 0) & (df_train['cat1'] == 0), 0.5)
+    # df_bias = biases['representation'](df_train, (df_train['num1'] > 0) & (df_train['cat1'] == 0), 0.5)
 
     # for fairness measures later
     if datasets['synthetic'].has_sens_attr:

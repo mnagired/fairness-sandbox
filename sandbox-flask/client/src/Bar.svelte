@@ -68,8 +68,8 @@ afterUpdate(() =>{
 <style>
 .chart-container {
     position: relative;
-    max-width: 500px !important;
-    max-height: 30px !important;
+    max-width: 600px !important;
+    max-height: 200px !important;
 }
 
 /*  */

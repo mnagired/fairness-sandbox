@@ -19,7 +19,7 @@ const NAMED_COLORS = [
 ];
 
 export function generateDataForLinePlot(jsonData) {
-    // console.log(jsonData);
+    console.log(jsonData);
     const keys = Object.keys(jsonData);
     const values = Object.values(jsonData);
     console.log(keys);
