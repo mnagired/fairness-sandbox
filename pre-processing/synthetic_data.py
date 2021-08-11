@@ -193,6 +193,7 @@ def get_synthetic_data(n, r, num_numerical_feats, num_cat_feats,
     num_majority = n - int(r*n)
 
     effect_param_sens = [9999]
+    #effect_param_sens = [np.random.uniform(-1,1)]
     sens_comb_maj = np.matmul(np.ones((num_majority,1)), effect_param_sens)
     sens_comb = np.matmul(sens_feat, effect_param_sens)
 
