@@ -2,3 +2,4 @@
 node_modules
 public/bundle.*
 __pycache__/
+sandbox-flask/__pycache__/

@@ -2,7 +2,7 @@
   // import { Chart } from 'chart.js/dist/chart.js';
   import Bar from './Bar.svelte'
   import Line from './Line.svelte'
-  import {generateDataForLinePlot} from './util/utils.js'
+  import {generateDataForLinePlot} from '../util/utils.js'
 
   let txt = '';
   let plot = '';
@@ -100,20 +100,13 @@
 
 <h1>Fairness Sandbox</h1>
 
-
 <div class="flex items-center">
   <div class="" >
     <label for="dataset">Dataset:</label>
   </div>
-  <!-- <div class="w-25 mr2" >
+  <div class="w-25 mr2" >
     <select name="dataset" id="dataset" disabled>
       <option value="synthetic">Synthetic</option>
-    </select>
-  </div> -->
-  <div class="relative inline-flex">
-    <svg class="w-2 h-2 absolute top-0 right-0 m-4 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 412 232"><path d="M206 171.144L42.678 7.822c-9.763-9.763-25.592-9.763-35.355 0-9.763 9.764-9.763 25.592 0 35.355l181 181c4.88 4.882 11.279 7.323 17.677 7.323s12.796-2.441 17.678-7.322l181-181c9.763-9.764 9.763-25.592 0-35.355-9.763-9.763-25.592-9.763-35.355 0L206 171.144z" fill="#648299" fill-rule="nonzero"/></svg>
-    <select class="border border-gray-300 rounded-full text-gray-600 h-10 pl-5 pr-10 bg-white hover:border-gray-400 focus:outline-none appearance-none" disabled>
-      <option>Synthetic</option>
     </select>
   </div>
 </div>
@@ -125,10 +118,7 @@
     <input bind:value={chartVar}>
   </div>
   <div class="w-25 mr2" >
-    <!-- <button on:click={plotCounts}>Visualize</button> -->
-    <button on:click={plotCounts} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-      Visualize
-    </button>
+    <button on:click={plotCounts}>Visualize</button>
     <button on:click={() =>{showPlot = false}}>Hide</button>
   </div>
 </div>
@@ -205,15 +195,4 @@
   <Line bind:labels={lineLabels} bind:dataset={lineDataset}/>
 {/if}
 
-
-
-
-
-
-
-<!-- <Bar data={chartValue} labels={chartKey}/> -->
-
-<style>
-	p {
-	}
-</style>
+<h1>hello???</h1>
