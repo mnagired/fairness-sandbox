@@ -6,6 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import random
+import seaborn as sns
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 '''
 
@@ -173,24 +176,21 @@ def equal_base_rates(df_majority, df_minority):
 
     return df_true
 
-def distribution_plot(outcome_min = [], outcome_maj = [], outcome = [],
+def distribution_plot(outcome_min = [], outcome_maj = [],
                       threshold_min = 0.5, threshold_maj = 0.5):
 
     plt.figure(figsize=(17,7))
 
-    plt.subplot(1,2,1)
-    plt.hist(outcome_min,label='continuous outcome',bins='auto')
-    plt.axvline(threshold_min,color='red',label='threshold')
-    plt.xlabel("Continuous Outcome")
-    plt.ylabel("Number of Samples")
-    plt.title("Minority")
+    sns.distplot(outcome_min, label = 'minority')
+    sns.distplot(outcome_maj, label = 'majority')
+    
+    if threshold_maj == threshold_min:
+        plt.axvline(threshold_min,color='red',label='threshold')
+    else:
+        plt.axvline(threshold_min,color='red',label='threshold_min')
+        plt.axvline(threshold_maj,color='blue',label='threshold_maj')
 
-    plt.subplot(1,2,2)
-    plt.hist(outcome_maj,label='continuous outcome',bins='auto')
-    plt.axvline(threshold_maj,color='red',label='threshold')
-    plt.xlabel("Continuous Outcome")
-    plt.ylabel("Number of Samples")
-    plt.title("Majority")
+    plt.legend()
     plt.show()
 
 
@@ -234,7 +234,7 @@ Parameters:
         of levels for each categorical feature
         len(cat_levels) = num_cat_feats
 
-    show_vis displays the distribution of outcomes
+    show_vis = True to see distribution of outcomes for minority and majority
 
 '''
 
