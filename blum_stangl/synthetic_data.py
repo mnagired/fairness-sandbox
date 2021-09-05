@@ -183,7 +183,7 @@ def distribution_plot(outcome_min = [], outcome_maj = [],
 
     sns.distplot(outcome_min, label = 'minority')
     sns.distplot(outcome_maj, label = 'majority')
-    
+
     if threshold_maj == threshold_min:
         plt.axvline(threshold_min,color='red',label='threshold')
     else:
