@@ -38,9 +38,6 @@ def get_sensitive_feat(n, r):
 
     sens_feat = np.vstack((minority, majority))
 
-    # shuffle so as to ensure randomness
-    np.random.shuffle(sens_feat)
-
     return sens_feat
 
 def get_cat_feats(num_cat_feats, cat_feats_levels, n):
@@ -197,15 +194,15 @@ def get_synthetic_data(n, r, num_numerical_feats, num_cat_feats,
         effect_param_maj = [-0.7, 0.5, 1.5]
         outcome_continuous_min = 1/(1+np.exp(-np.matmul(num_features_min,effect_param_min))) # logit model + no added noise
         outcome_continuous_maj = 1/(1+np.exp(-np.matmul(num_features_maj,effect_param_maj)))
-        outcome_binary_min = np.where(outcome_continuous_min >= 0.5, 1, 0) # logistic decision boundary
-        outcome_binary_maj = np.where(outcome_continuous_maj >= 0.5, 1, 0)
+        outcome_binary_min = np.random.binomial(1,outcome_continuous_min) # logistic decision boundary
+        outcome_binary_maj = np.random.binomial(1,outcome_continuous_maj)
         outcome_binary = np.hstack((outcome_binary_min, outcome_binary_maj)).reshape(n,1)
         if show_vis:
             distribution_plot(outcome_continuous_min, outcome_continuous_maj, diff_dist=True)
     else:
         effect_param = [0.5, -0.2, 0.1]
         outcome_continuous = 1/(1+np.exp(-np.matmul(num_features,effect_param))) # logit model + no added noise
-        outcome_binary = np.where(outcome_continuous >= 0.5, 1, 0).reshape(n,1) # logistic decision boundary
+        outcome_binary = np.random.binomial(1,outcome_continuous).reshape(n,1) # logistic decision boundary
         if show_vis:
             distribution_plot(outcome=outcome_continuous, diff_dist=False)
 
