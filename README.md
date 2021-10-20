@@ -46,18 +46,9 @@ Collaborators:
    *  Haiyi Zhu [(webpage)](http://haiyizhu.com)
    *  Hao-Fei Cheng [(webpage)](https://www-users.cse.umn.edu/~cheng635/)
 
-## Codebase Structure
-
-* 0.2
-    * Various bug fixes and optimizations
-    * See [commit change]() or See [release history]()
-* 0.1
-    * Initial Release
-
 ## License
 
 This project is licensed under the [MIT] License - see the LICENSE.md file for details
-
 
 ## Contact
 
