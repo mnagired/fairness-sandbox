@@ -4,22 +4,34 @@ A framework which assesses the effectiveness of fairness-enhancing interventions
 
 ## Description
 
-An in-depth paragraph about your project and overview of use.
+Our sandbox offers the following pipeline:
 
-## Getting Started
+### Data
+1. Upload Dataset
+2. Choose existing dataset (e.g. Adult Income)
+3. Generate Synthetic Dataset
 
-### Installing
+### Model
+1. Train any ml model of choice
 
-* How/where to download your program
-* Any modifications needed to be made to files/folders
+### Bias Injection
+Select one (or more) bias(es) to inject into the data from the following list:
+1. Representation Bias (under-sampling subsets of the data)
+2. Measurement Bias (adding noise)
+3. Omitted Variable Bias
+4. Label Noise Bias
+5. Over-Sampling Bias
+6. Under-Sampling Bias
 
-### Executing program
+### Fairness Intervention
+Select one of the following interventions:
+1. [Correlation Remover](https://fairlearn.org/v0.7.0/api_reference/fairlearn.preprocessing.html#module-fairlearn.preprocessing) (Pre-Processing)
+2. [Exponentiated Gradient](https://fairlearn.org/v0.7.0/api_reference/fairlearn.reductions.html#fairlearn.reductions.ExponentiatedGradient) (In-Processing)
+3. [Grid Search](https://fairlearn.org/v0.7.0/api_reference/fairlearn.reductions.html#fairlearn.reductions.GridSearch) (In-Processing)
+4. [Threshold Optimizer](https://fairlearn.org/v0.7.0/api_reference/fairlearn.postprocessing.html) (Post-Processing)
 
-* How to run the program
-* Step-by-step bullets
-```
-code blocks for commands
-```
+### Fairness Visualization
+After selecting a metric of your choice (e.g. accuracy, precision, roc_auc, etc), we output a plot which displays the effectiveness of the fairness intervention's ability to mitigate the bias you injected, with respect to the ground truth data.
 
 ## Authors + Collaborators
 
