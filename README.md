@@ -26,24 +26,17 @@ An in-depth paragraph about your project and overview of use.
 code blocks for commands
 ```
 
-## Help
-
-Any advise for common problems or issues.
-```
-command to run if program contains helper info
-```
-
 ## Authors + Collaborators
 
-Lead Developer: Manish Nagrieddy [@mnagired](http://twitter.com/mnagired) [LinkedIn](https://www.linkedin.com/in/mnagireddy/)
-Primary Advisor: Hoda Heidari [webpage](https://www.cs.cmu.edu/~hheidari/)
+Lead Developer: Manish Nagrieddy [@mnagired](http://twitter.com/mnagired) [(LinkedIn)](https://www.linkedin.com/in/mnagireddy/)
+Primary Advisor: Hoda Heidari [(webpage)](https://www.cs.cmu.edu/~hheidari/)
 
 Collaborators:
-   *  Steven Wu [webpage](http://zstevenwu.com)
-   *  Logan Stapleton [webpage](http://loganstapleton.com)
-   *  Nil-Jana Akpinar [webpage](http://nakpinar.github.io)
-   *  Haiyi Zhu [webpage](http://haiyizhu.com)
-   *  Hao-Fei Cheng [webpage](https://www-users.cse.umn.edu/~cheng635/)
+   *  Steven Wu [(webpage)](http://zstevenwu.com)
+   *  Logan Stapleton [(webpage)](http://loganstapleton.com)
+   *  Nil-Jana Akpinar [(webpage)](http://nakpinar.github.io)
+   *  Haiyi Zhu [(webpage)](http://haiyizhu.com)
+   *  Hao-Fei Cheng [(webpage)](https://www-users.cse.umn.edu/~cheng635/)
 
 ## Codebase Structure
 
@@ -56,3 +49,8 @@ Collaborators:
 ## License
 
 This project is licensed under the [MIT] License - see the LICENSE.md file for details
+
+
+## Contact
+
+Please reach out to Manish Nagireddy [(email)](mailto:mnagired@andrew.cmu.edu) with any comments/questions/suggestions!
