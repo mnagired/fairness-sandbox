@@ -1,46 +1,29 @@
-# Bias Injection Sandbox
+# Blum_Stangl Case Study
 
-A framework which assesses the effectiveness of fairness-enhancing interventions.
+Empirical replication of results from [Blum_Stangl](https://arxiv.org/abs/1912.01094)
 
 ## Description
 
-An in-depth paragraph about your project and overview of use.
+The above paper theoretically describes settings in which fairness-constrained optimization on biased data recovers the Bayes optimal classifier on the true data distribution.
 
-## Getting Started
-
-### Installing
-
-* How/where to download your program
-* Any modifications needed to be made to files/folders
-
-### Executing program
-
-* How to run the program
-* Step-by-step bullets
-```
-code blocks for commands
-```
+In this case study, we specifically zoom into one of the findings of the paper, that is, Equalized Odds constrained empirical risk minimization on data with underrepresentation bias can recover the Bayes optimal classifier on the unbiased data. This result requires several structural assumptions on the data generating process and we will draw on the described data generating procedure when simulating data for our simulation. 
 
 ## Authors + Collaborators
 
-Lead Developer: Manish Nagrieddy [@mnagired](http://twitter.com/mnagired) [(LinkedIn)](https://www.linkedin.com/in/mnagireddy/)
+Lead Developers: Manish Nagrieddy [@mnagired](http://twitter.com/mnagired) [(LinkedIn)](https://www.linkedin.com/in/mnagireddy/) and Nil-Jana Akpinar [(webpage)](http://nakpinar.github.io)
 
 Primary Advisor: Hoda Heidari [(webpage)](https://www.cs.cmu.edu/~hheidari/)
 
 Collaborators:
    *  Steven Wu [(webpage)](http://zstevenwu.com)
    *  Logan Stapleton [(webpage)](http://loganstapleton.com)
-   *  Nil-Jana Akpinar [(webpage)](http://nakpinar.github.io)
    *  Haiyi Zhu [(webpage)](http://haiyizhu.com)
    *  Hao-Fei Cheng [(webpage)](https://www-users.cse.umn.edu/~cheng635/)
 
 ## Codebase Structure
 
-* 0.2
-    * Various bug fixes and optimizations
-    * See [commit change]() or See [release history]()
-* 0.1
-    * Initial Release
+* `under_synthetic`: main notebook file which replicates the above result
+* `plots.ipynb`: load csv data files and generate plots
 
 ## License
 
