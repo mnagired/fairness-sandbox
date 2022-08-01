@@ -10,7 +10,7 @@ In this case study, we specifically zoom into one of the findings of the paper, 
 
 ## Authors + Collaborators
 
-Lead Developers: Manish Nagrieddy [@mnagired](http://twitter.com/mnagired) [(LinkedIn)](https://www.linkedin.com/in/mnagireddy/) and Nil-Jana Akpinar [(webpage)](http://nakpinar.github.io)
+Lead Developers: Manish Nagireddy [@mnagired](http://twitter.com/mnagired) [(LinkedIn)](https://www.linkedin.com/in/mnagireddy/) and Nil-Jana Akpinar [(webpage)](http://nakpinar.github.io)
 
 Primary Advisor: Hoda Heidari [(webpage)](https://www.cs.cmu.edu/~hheidari/)
 
