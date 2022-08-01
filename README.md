@@ -6,7 +6,7 @@ Empirical replication of results from [Blum_Stangl](https://arxiv.org/abs/1912.0
 
 The above paper theoretically describes settings in which fairness-constrained optimization on biased data recovers the Bayes optimal classifier on the true data distribution.
 
-In this case study, we specifically zoom into one of the findings of the paper, that is, Equalized Odds constrained empirical risk minimization on data with underrepresentation bias can recover the Bayes optimal classifier on the unbiased data. This result requires several structural assumptions on the data generating process and we will draw on the described data generating procedure when simulating data for our simulation. 
+In this case study, we specifically zoom into one of the findings of [the paper](https://arxiv.org/abs/2204.10233), that is, Equalized Odds constrained empirical risk minimization on data with underrepresentation bias can recover the Bayes optimal classifier on the unbiased data. This result requires several structural assumptions on the data generating process and we will draw on the described data generating procedure when simulating data for our simulation. 
 
 ## Authors + Collaborators
 
