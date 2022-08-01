@@ -32,4 +32,4 @@ This project is licensed under the [MIT] License - see the LICENSE.md file for d
 
 ## Contact
 
-Please reach out to Manish Nagireddy [(email)](mailto:mnagired@andrew.cmu.edu) with any comments/questions/suggestions!
+Please reach out to Nil-Jana Akpinar [(email)](mailto:nakpinar@andrew.cmu.edu) with any comments/questions/suggestions!
