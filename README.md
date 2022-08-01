@@ -1,6 +1,6 @@
 # Bias Injection Sandbox
 
-A framework which assesses the effectiveness of fairness-enhancing interventions.
+A framework which assesses the effectiveness of fairness-enhancing interventions. Full paper linked [here](https://arxiv.org/abs/2204.10233).
 
 ## Description
 
@@ -35,14 +35,15 @@ After selecting a metric of your choice (e.g. accuracy, precision, roc_auc, etc)
 
 ## Authors + Collaborators
 
-Lead Developer: Manish Nagrieddy [@mnagired](http://twitter.com/mnagired) [(LinkedIn)](https://www.linkedin.com/in/mnagireddy/)
+Lead Developer: Manish Nagireddy [@mnagired](http://twitter.com/mnagired) [(LinkedIn)](https://www.linkedin.com/in/mnagireddy/)
+
+Primary Author: Nil-Jana Akpinar [(webpage)](http://nakpinar.github.io)
 
 Primary Advisor: Hoda Heidari [(webpage)](https://www.cs.cmu.edu/~hheidari/)
 
 Collaborators:
    *  Steven Wu [(webpage)](http://zstevenwu.com)
    *  Logan Stapleton [(webpage)](http://loganstapleton.com)
-   *  Nil-Jana Akpinar [(webpage)](http://nakpinar.github.io)
    *  Haiyi Zhu [(webpage)](http://haiyizhu.com)
    *  Hao-Fei Cheng [(webpage)](https://www-users.cse.umn.edu/~cheng635/)
 
@@ -52,4 +53,4 @@ This project is licensed under the [MIT] License - see the LICENSE.md file for d
 
 ## Contact
 
-Please reach out to Manish Nagireddy [(email)](mailto:mnagired@andrew.cmu.edu) with any comments/questions/suggestions!
+Please reach out to Nil-Jana Akpinar [(email)](mailto:nakpinar@andrew.cmu.edu) with any comments/questions/suggestions!
