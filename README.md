@@ -8,6 +8,11 @@ The above paper theoretically describes settings in which fairness-constrained o
 
 In this case study, we specifically zoom into one of the findings of [the paper](https://arxiv.org/abs/2204.10233), that is, Equalized Odds constrained empirical risk minimization on data with underrepresentation bias can recover the Bayes optimal classifier on the unbiased data. This result requires several structural assumptions on the data generating process and we will draw on the described data generating procedure when simulating data for our simulation. 
 
+## Codebase Structure
+
+* `under_synthetic`: main notebook file which replicates the above result
+* `plots.ipynb`: load csv data files and generate plots
+
 ## Authors + Collaborators
 
 Lead Developers: Manish Nagireddy [@mnagired](http://twitter.com/mnagired) [(LinkedIn)](https://www.linkedin.com/in/mnagireddy/) and Nil-Jana Akpinar [(webpage)](http://nakpinar.github.io)
@@ -19,11 +24,6 @@ Collaborators:
    *  Logan Stapleton [(webpage)](http://loganstapleton.com)
    *  Haiyi Zhu [(webpage)](http://haiyizhu.com)
    *  Hao-Fei Cheng [(webpage)](https://www-users.cse.umn.edu/~cheng635/)
-
-## Codebase Structure
-
-* `under_synthetic`: main notebook file which replicates the above result
-* `plots.ipynb`: load csv data files and generate plots
 
 ## License
 
