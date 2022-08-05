@@ -6,6 +6,8 @@ A framework which assesses the effectiveness of fairness-enhancing interventions
 
 `sandbox.ipynb`: main file to run the sandbox's functionalities
 
+Refer to [this branch](https://github.com/mnagired/fairness-sandbox/tree/blum_stangl) for recreation of our experiments in the above paper.
+
 ## Description
 
 Our sandbox offers the following pipeline:
