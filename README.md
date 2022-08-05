@@ -2,6 +2,10 @@
 
 A framework which assesses the effectiveness of fairness-enhancing interventions. Full paper linked [here](https://arxiv.org/abs/2204.10233).
 
+## Structure
+
+`sandbox.ipynb`: main file to run the sandbox's functionalities
+
 ## Description
 
 Our sandbox offers the following pipeline:
