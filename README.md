@@ -39,7 +39,7 @@ Select one of the following interventions:
 ### Fairness Visualization
 After selecting a metric of your choice (e.g. accuracy, precision, roc_auc, etc), we output a plot which displays the effectiveness of the fairness intervention's ability to mitigate the bias you injected, with respect to the ground truth data.
 
-## Authors + Collaborators
+<!-- ## Authors + Collaborators
 
 Lead Developer: Manish Nagireddy [@mnagired](http://twitter.com/mnagired) [(LinkedIn)](https://www.linkedin.com/in/mnagireddy/)
 
@@ -51,7 +51,7 @@ Collaborators:
    *  Steven Wu [(webpage)](http://zstevenwu.com)
    *  Logan Stapleton [(webpage)](http://loganstapleton.com)
    *  Haiyi Zhu [(webpage)](http://haiyizhu.com)
-   *  Hao-Fei Cheng [(webpage)](https://www-users.cse.umn.edu/~cheng635/)
+   *  Hao-Fei Cheng [(webpage)](https://www-users.cse.umn.edu/~cheng635/) -->
 
 ## License
 
