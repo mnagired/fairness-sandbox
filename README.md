@@ -14,7 +14,7 @@ In this case study, we specifically zoom into one of the findings of [the paper]
 * `post_processing.ipynb`: notebook file which replicates Appendix B (post processing intervention)
 * `plots.ipynb`: load csv data files and generate plots
 
-## Authors + Collaborators
+<!-- ## Authors + Collaborators
 
 Lead Developers: Manish Nagireddy [@mnagired](http://twitter.com/mnagired) [(LinkedIn)](https://www.linkedin.com/in/mnagireddy/) and Nil-Jana Akpinar [(webpage)](http://nakpinar.github.io)
 
@@ -24,13 +24,13 @@ Collaborators:
    *  Steven Wu [(webpage)](http://zstevenwu.com)
    *  Logan Stapleton [(webpage)](http://loganstapleton.com)
    *  Haiyi Zhu [(webpage)](http://haiyizhu.com)
-   *  Hao-Fei Cheng [(webpage)](https://www-users.cse.umn.edu/~cheng635/)
+   *  Hao-Fei Cheng [(webpage)](https://www-users.cse.umn.edu/~cheng635/) -->
 
 ## License
 
 This project is licensed under the [MIT] License - see the LICENSE.md file for details
 
 
-## Contact
+<!-- ## Contact
 
-Please reach out to Nil-Jana Akpinar [(email)](mailto:nakpinar@andrew.cmu.edu) with any comments/questions/suggestions!
+Please reach out to Nil-Jana Akpinar [(email)](mailto:nakpinar@andrew.cmu.edu) with any comments/questions/suggestions! -->
