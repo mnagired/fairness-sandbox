@@ -1,12 +1,13 @@
 # Bias Injection Sandbox
 
-A framework which assesses the effectiveness of fairness-enhancing interventions. Full paper linked [here](https://arxiv.org/abs/2204.10233).
+A framework which assesses the effectiveness of fairness-enhancing interventions.
+<!-- Full paper linked [here](https://arxiv.org/abs/2204.10233). -->
 
 ## Structure
 
 `sandbox.ipynb`: main file to run the sandbox's functionalities
 
-Refer to [this branch](https://github.com/mnagired/fairness-sandbox/tree/blum_stangl) for recreation of our experiments in the above paper.
+<!-- Refer to [this branch](https://github.com/mnagired/fairness-sandbox/tree/blum_stangl) for recreation of our experiments in the above paper. -->
 
 ## Description
 
